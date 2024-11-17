@@ -4,8 +4,7 @@ import { nanoid } from 'nanoid';
 export type MessageType = 
   | 'SIDE_PANEL_READY'
   | 'CONTENT_READY'
-  | 'TAB_ACTIVATED'
-  | 'TEST_MESSAGE';
+  | 'TAB_ACTIVATED';
 
 export type Context = 'content' | 'background' | 'sidepanel';
 

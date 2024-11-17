@@ -1,4 +1,3 @@
-// src/lib/connectionManager.ts
 import { nanoid } from 'nanoid';
 import { Logger } from './logger';
 import { loadSettings } from './settings';
@@ -6,7 +5,8 @@ import { loadSettings } from './settings';
 export type MessageType = 
   | 'SIDE_PANEL_READY'
   | 'CONTENT_READY'
-  | 'TAB_ACTIVATED';
+  | 'TAB_ACTIVATED'
+  | 'DEBUG';  // Special message type for debugging purposes - handlers will receive all messages for logging/monitoring
 
 export type Context = 'content' | 'background' | 'sidepanel';
 
@@ -30,6 +30,7 @@ export class ConnectionManager {
   private isSettingUp = false;
   private isInvalidated = false;
   private logger: Logger;
+  private messageQueue: Message[] = [];
 
   private constructor() {
     this.logger = new Logger(this.context);
@@ -109,7 +110,7 @@ export class ConnectionManager {
       });
 
       this.port.onDisconnect.addListener(this.handleDisconnect);
-
+      this.flushMessageQueue();
     } catch (error) {
       this.logger.error('Connection error:', error);
       this.scheduleReconnect();
@@ -199,6 +200,9 @@ export class ConnectionManager {
           this.broadcast(message);
         } else if (this.port) {
           this.port.postMessage(message);
+        } else {
+          this.messageQueue.push(message);
+          this.logger.debug('Message queued:', message);
         }
       } catch (error) {
         this.logger.error('Send error:', error);
@@ -228,7 +232,8 @@ export class ConnectionManager {
   private handleMessage(message: Message) {
     this.logger.debug('received:', message);
     const handlers = this.messageHandlers.get(message.type) || [];
-    handlers.forEach(handler => handler(message));
+    const debugHandlers = this.messageHandlers.get('DEBUG') || [];
+    [...handlers, ...debugHandlers].forEach(handler => handler(message));
   }
 
   private broadcast(message: Message, excludePort?: chrome.runtime.Port) {
@@ -243,6 +248,23 @@ export class ConnectionManager {
         }
       }
     });
+  }
+
+  private async flushMessageQueue() {
+    this.logger.debug(`Flushing message queue (${this.messageQueue.length} messages)`);
+    while (this.messageQueue.length > 0) {
+      const message = this.messageQueue.shift();
+      if (message && this.port) {
+        try {
+          this.port.postMessage(message);
+          this.logger.debug('Queued message sent:', message);
+        } catch (error) {
+          this.logger.error('Failed to send queued message:', error);
+          this.messageQueue.unshift(message);
+          break;
+        }
+      }
+    }
   }
 }
 

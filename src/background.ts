@@ -20,7 +20,7 @@ class BackgroundService {
 
   private setupEventHandlers() {
     // Subscribe to all messages and log them
-    this.manager.subscribe('*' as any, (message: Message) => {
+    this.manager.subscribe('DEBUG', (message: Message) => {
       const timestamp = new Date(message.timestamp).toISOString();
       this.logger.log(
         `[${timestamp}] ${message.source} -> ${message.target || 'broadcast'}: ${message.type}`,

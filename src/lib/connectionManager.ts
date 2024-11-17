@@ -1,5 +1,7 @@
 // src/lib/connectionManager.ts
 import { nanoid } from 'nanoid';
+import { Logger } from './logger';
+import { loadSettings } from './settings';
 
 export type MessageType = 
   | 'SIDE_PANEL_READY'
@@ -17,20 +19,8 @@ export interface Message<T = any> {
   timestamp: number;
 }
 
-class Logger {
-  constructor(private context: Context) {}
-
-  log(message: string, ...args: any[]) {
-    console.log(`[${this.context}] ${message}`, ...args);
-  }
-
-  error(message: string, ...args: any[]) {
-    console.error(`[${this.context}] ${message}`, ...args);
-  }
-}
-
 export class ConnectionManager {
-  private static instance: ConnectionManager; // Singleton instance
+  private static instance: ConnectionManager;
   private static readonly RECONNECT_DELAY = 1000;
   private static readonly INITIAL_CONNECTION_DELAY = 100;
   private context: Context = 'content';
@@ -44,6 +34,20 @@ export class ConnectionManager {
   private constructor() {
     this.logger = new Logger(this.context);
     this.setupConnections();
+    this.initializeLogger();
+  }
+
+  private async initializeLogger() {
+    const settings = await loadSettings();
+    Logger.setLogLevel(settings.logLevel);
+
+    if (chrome.storage?.sync) {
+      chrome.storage.sync.onChanged.addListener((changes) => {
+        if (changes.settings?.newValue?.logLevel) {
+          Logger.setLogLevel(changes.settings.newValue.logLevel);
+        }
+      });
+    }
   }
 
   public static getInstance(): ConnectionManager {
@@ -55,7 +59,7 @@ export class ConnectionManager {
 
   public setContext(context: Context) {
     if (this.context === context) {
-      this.logger.log('Context already set, skipping...');
+      this.logger.debug('Context already set, skipping...');
       return;
     }
     
@@ -77,30 +81,30 @@ export class ConnectionManager {
 
   private setupClientConnections() {
     if (this.isSettingUp) {
-      this.logger.log('Setup already in progress, skipping...');
+      this.logger.debug('Setup already in progress, skipping...');
       return;
     }
 
     this.isSettingUp = true;
-    this.logger.log('Setting up client connections...');
+    this.logger.debug('Setting up client connections...');
     
-    this.logger.log('Scheduling initial connection...');
+    this.logger.debug('Scheduling initial connection...');
     setTimeout(this.connectToBackground, ConnectionManager.INITIAL_CONNECTION_DELAY);
   }
 
   private connectToBackground = () => {
     if (this.context === 'background') {
-      this.logger.log('Skipping connection as background context');
+      this.logger.debug('Skipping connection as background context');
       return;
     }
 
     try {
-      this.logger.log('Attempting to connect...');
+      this.logger.debug('Attempting to connect...');
       this.port = chrome.runtime.connect({ name: `${this.context}-${Date.now()}` });
       this.logger.log(`Connected successfully as ${this.port.name}`);
 
       this.port.onMessage.addListener((message) => {
-        this.logger.log('Received message:', message);
+        this.logger.debug('Received message:', message);
         this.handleMessage(message);
       });
 
@@ -114,7 +118,7 @@ export class ConnectionManager {
 
   private handleDisconnect = () => {
     const error = chrome.runtime.lastError;
-    this.logger.log('Disconnected, error:', error);
+    this.logger.debug('Disconnected, error:', error);
     
     if (this.isExtensionContextInvalidated(error)) {
       this.isInvalidated = true;
@@ -123,7 +127,7 @@ export class ConnectionManager {
     }
 
     if (this.context === 'background') {
-      this.logger.log('Skipping reconnection as background context');
+      this.logger.debug('Skipping reconnection as background context');
       return;
     }
 
@@ -149,27 +153,27 @@ export class ConnectionManager {
     }
 
     if (!this.isInvalidated) {
-      this.logger.log('Scheduling reconnection...');
+      this.logger.debug('Scheduling reconnection...');
       setTimeout(this.connectToBackground, ConnectionManager.RECONNECT_DELAY);
     }
   }
 
   private setupBackgroundConnections() {
-    this.logger.log('Setting up background connections...'); 
+    this.logger.debug('Setting up background connections...'); 
 
     chrome.runtime.onConnect.addListener(port => {
       this.logger.log(`New connection from ${port.name}`);
       this.ports.set(port.name, port);
 
       port.onMessage.addListener((message) => {
-        this.logger.log(`Received message from ${port.name}:`, message);
+        this.logger.debug(`Received message from ${port.name}:`, message);
         this.handleMessage(message);
         this.broadcast(message, port);
       });
 
       port.onDisconnect.addListener(() => {
         const error = chrome.runtime.lastError;
-        this.logger.log(`${port.name} disconnected, error:`, error);
+        this.logger.debug(`${port.name} disconnected, error:`, error);
         this.ports.delete(port.name);
       });
     });
@@ -222,7 +226,7 @@ export class ConnectionManager {
   }
 
   private handleMessage(message: Message) {
-    this.logger.log('received:', message);
+    this.logger.debug('received:', message);
     const handlers = this.messageHandlers.get(message.type) || [];
     handlers.forEach(handler => handler(message));
   }

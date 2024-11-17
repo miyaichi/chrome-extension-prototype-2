@@ -16,8 +16,7 @@
 }
 
 .card-header {
-  border-bottom: 1px solid var(--border-color);
-  padding: 14px;
+   padding: 14px;
 }
 
 .card-title {

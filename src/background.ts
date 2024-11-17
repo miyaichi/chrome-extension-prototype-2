@@ -1,30 +1,20 @@
 // src/background.ts
 import { ConnectionManager, Message } from './lib/connectionManager';
-
-class Logger {
-  log(message: string, ...args: any[]) {
-    console.log(`[background] ${message}`, ...args);
-  }
-
-  error(message: string, ...args: any[]) {
-    console.error(`[background] ${message}`, ...args);
-  }
-}
+import { Logger } from './lib/logger';
 
 class BackgroundService {
   private manager: ConnectionManager;
-  private logger = new Logger();
+  private logger = new Logger('background');
 
   constructor() {
-    this.logger.log('Initializing BackgroundService...');
+    this.logger.debug('Initializing BackgroundService...');
     this.manager = ConnectionManager.getInstance();
-    this.logger.log('Setting background context...');
+    this.logger.debug('Setting background context...');
     this.manager.setContext('background');
-    this.logger.log('Setting up event handlers...');
+    this.logger.debug('Setting up event handlers...');
     this.setupEventHandlers();
     this.logger.log('BackgroundService initialization complete');
     
-    // 初期設定を実行
     this.setupSidePanel();
   }
 
@@ -32,10 +22,12 @@ class BackgroundService {
     // メッセージのモニタリング（全メッセージをログ出力）
     this.manager.subscribe('*' as any, (message: Message) => {
       const timestamp = new Date(message.timestamp).toISOString();
-      this.logger.log(`[${timestamp}] ${message.source} -> ${message.target || 'broadcast'}: ${message.type}`, message.payload);
+      this.logger.log(
+        `[${timestamp}] ${message.source} -> ${message.target || 'broadcast'}: ${message.type}`,
+        message.payload
+      );
     });
 
-    // イベントハンドラの登録
     chrome.runtime.onInstalled.addListener(() => {
       this.logger.log('Extension installed/updated');
       this.setupSidePanel();
@@ -77,11 +69,10 @@ class BackgroundService {
       if (error) {
         this.logger.error('Failed to open side panel:', error);
       } else {
-        this.logger.log('Side panel opened successfully');
+        this.logger.debug('Side panel opened successfully');
       }
     });
   }
 }
 
-// サービスの起動
 new BackgroundService();

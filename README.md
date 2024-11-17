@@ -7,7 +7,7 @@ Prototype of a chrome extension using side panel.
 ├── dist/                        # Compiled files (git ignored)
 ├── node_modules/                # Node modules (git ignored)
 ├── public/
-│   └── sidepanel.html
+│   └── sidepanel.html           # Side panel HTML
 ├── src/
 │   ├── background.ts            # Background script
 │   ├── components/

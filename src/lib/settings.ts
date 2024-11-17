@@ -1,20 +1,16 @@
 // src/lib/settings.ts
 import { useEffect, useState } from 'react';
 
-// ログレベルの定義
 export type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
-// 設定の型定義
 export interface Settings {
   logLevel: LogLevel;
 }
 
-// デフォルト設定
 export const defaultSettings: Settings = {
   logLevel: 'info',
 };
 
-// 設定の読み込み
 export const loadSettings = async (): Promise<Settings> => {
   if (!chrome.storage || !chrome.storage.sync) {
     console.warn('Chrome storage API not available, using default settings');
@@ -24,7 +20,6 @@ export const loadSettings = async (): Promise<Settings> => {
   try {
     const result = await chrome.storage.sync.get('settings');
     if (!result.settings) {
-      // 初回起動時は設定を初期化
       await saveSettings(defaultSettings);
       return defaultSettings;
     }
@@ -35,7 +30,6 @@ export const loadSettings = async (): Promise<Settings> => {
   }
 };
 
-// 設定の保存
 export const saveSettings = async (settings: Settings): Promise<void> => {
   if (!chrome.storage || !chrome.storage.sync) {
     console.warn('Chrome storage API not available, settings will not persist');
@@ -49,7 +43,6 @@ export const saveSettings = async (settings: Settings): Promise<void> => {
   }
 };
 
-// React Hook for settings management
 export const useSettings = () => {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [loading, setLoading] = useState(true);
@@ -70,7 +63,6 @@ export const useSettings = () => {
 
     initializeSettings();
 
-    // 設定変更の監視
     const handleStorageChange = (changes: {
       [key: string]: chrome.storage.StorageChange;
     }) => {

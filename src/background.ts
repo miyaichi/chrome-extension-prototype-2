@@ -19,7 +19,7 @@ class BackgroundService {
   }
 
   private setupEventHandlers() {
-    // メッセージのモニタリング（全メッセージをログ出力）
+    // Subscribe to all messages and log them
     this.manager.subscribe('*' as any, (message: Message) => {
       const timestamp = new Date(message.timestamp).toISOString();
       this.logger.log(

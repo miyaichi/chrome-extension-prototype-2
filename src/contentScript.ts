@@ -7,6 +7,7 @@ ConnectionManager.getInstance().setContext('content');
 
 sendMessage('CONTENT_READY', { url: window.location.href });
 
+// Subscribe to all messages and log them
 subscribe('DEBUG', (message: Message) => {
   const timestamp = new Date(message.timestamp).toISOString();
   console.log(

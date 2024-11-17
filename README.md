@@ -1,4 +1,4 @@
-# chrome-extension-prototype-1
+# chrome-extension-prototype-2
 Prototype of a chrome extension using side panel.
 
 # Directory Structure

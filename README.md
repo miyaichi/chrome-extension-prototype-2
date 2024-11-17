@@ -28,10 +28,10 @@ Prototype of a chrome extension using side panel.
 │   │   └── index.tsx
 │   └── styles/
 │       └── common.css           # Common styles
-├── manifest.json
-├── package-lock.json
-├── package.json
-├── postcss.config.js
-├── tsconfig.json
-└── webpack.config.js
+├── manifest.json                # Chrome extension manifest
+├── package-lock.json            # NPM lock file
+├── package.json                 # NPM configuration
+├── postcss.config.js            # PostCSS configuration
+├── tsconfig.json                # TypeScript configuration
+└── webpack.config.js            # Webpack configuration
 ```

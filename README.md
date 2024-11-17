@@ -9,23 +9,25 @@ Prototype of a chrome extension using side panel.
 ├── public/
 │   └── sidepanel.html
 ├── src/
-│   ├── background.ts
+│   ├── background.ts            # Background script
 │   ├── components/
 │   │   ├── DOMSelector.css
-│   │   ├── DOMSelector.tsx
+│   │   ├── DOMSelector.tsx      # DOM selector
 │   │   ├── SettingPanel.css
-│   │   ├── SettingPanel.tsx
+│   │   ├── SettingPanel.tsx     # Setting panel
 │   │   ├── TagInjection.css
-│   │   └── TagInjection.tsx
-│   ├── contentScript.ts
+│   │   └── TagInjection.tsx     # Tag injection
+│   ├── contentScript.ts         # Content script
 │   ├── lib/
-│   │   └── connectionManager.ts
+│   │   ├── connectionManager.ts # Connection manager
+│   │   ├── logger.ts            # Logger
+│   │   └── settings.ts          # Settings
 │   ├── sidepanel/
 │   │   ├── App.css
-│   │   ├── App.tsx
+│   │   ├── App.tsx              # Side panel
 │   │   └── index.tsx
 │   └── styles/
-│       └── common.css
+│       └── common.css           # Common styles
 ├── manifest.json
 ├── package-lock.json
 ├── package.json
